@@ -1,4 +1,4 @@
-# Free public preview. Upgrade both resources before accepting real orders.
+# Public preview with a Starter web service and a free temporary database.
 databases:
   - name: eidren-db
     databaseName: eidren
@@ -11,7 +11,7 @@ services:
   - type: web
     name: eidren-watch-store
     runtime: python
-    plan: free
+    plan: starter
     region: oregon
     buildCommand: bash build.sh
     startCommand: python manage.py migrate --noinput && python manage.py seed_demo && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
