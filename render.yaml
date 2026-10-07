@@ -1,9 +1,9 @@
-# Paid production-oriented services: review Render's current prices before applying.
+# Free public preview. Upgrade both resources before accepting real orders.
 databases:
   - name: eidren-db
     databaseName: eidren
     user: eidren
-    plan: basic-256mb
+    plan: free
     region: oregon
     ipAllowList: []
 
@@ -11,10 +11,10 @@ services:
   - type: web
     name: eidren-watch-store
     runtime: python
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: bash build.sh
-    preDeployCommand: python manage.py migrate --noinput
+    preDeployCommand: python manage.py migrate --noinput && python manage.py seed_demo
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
     healthCheckPath: /health/
     envVars:
@@ -23,7 +23,7 @@ services:
       - key: DEBUG
         value: "false"
       - key: DEMO_MODE
-        value: "false"
+        value: "true"
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
@@ -34,18 +34,6 @@ services:
         value: "true"
       - key: STORE_NAME
         value: EIDREN
-      - key: STORE_EMAIL
-        sync: false
-      - key: SITE_URL
-        sync: false
-      - key: ALLOWED_HOSTS
-        sync: false
-      - key: CSRF_TRUSTED_ORIGINS
-        sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
       - key: STRIPE_AUTOMATIC_TAX
         value: "false"
       - key: SHIPPING_COUNTRIES
