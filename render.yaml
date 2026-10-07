@@ -1,0 +1,54 @@
+# Paid production-oriented services: review Render's current prices before applying.
+databases:
+  - name: eidren-db
+    databaseName: eidren
+    user: eidren
+    plan: basic-256mb
+    region: oregon
+    ipAllowList: []
+
+services:
+  - type: web
+    name: eidren-watch-store
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: bash build.sh
+    preDeployCommand: python manage.py migrate --noinput
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
+    healthCheckPath: /health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
+      - key: DEBUG
+        value: "false"
+      - key: DEMO_MODE
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: eidren-db
+          property: connectionString
+      - key: DATABASE_REQUIRE_SSL
+        value: "true"
+      - key: STORE_NAME
+        value: EIDREN
+      - key: STORE_EMAIL
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_AUTOMATIC_TAX
+        value: "false"
+      - key: SHIPPING_COUNTRIES
+        value: US
+      - key: SHIPPING_RATE_CENTS
+        value: "0"

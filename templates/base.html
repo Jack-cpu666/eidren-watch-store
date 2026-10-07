@@ -1,0 +1,46 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{% block description %}EIDREN — independent watches shaped by proportion, material, and mechanical character.{% endblock %}">
+  <meta name="theme-color" content="#0b0c0b">
+  <title>{% block title %}{{ store_name }} — Time, well considered.{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/store.css' %}">
+  <link rel="stylesheet" href="{% static 'css/luxe.css' %}">
+  <script src="{% static 'js/store.js' %}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement"><span>OBJECTS FOR MEASURED LIVING / EST. 2026</span><span class="announcement-right">{% if demo_mode %}PREVIEW COLLECTION{% else %}COMPLIMENTARY INSURED DELIVERY{% endif %}</span></div>
+  <header class="site-header">
+    <a class="wordmark" href="{% url 'shop:home' %}" aria-label="{{ store_name }} home"><svg class="brand-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 5h18M5 5v22h18M5 16h14M26 3v26" stroke="currentColor" stroke-width="1.25"/></svg>{{ store_name }}</a>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="{% url 'shop:catalog' %}" {% if request.resolver_match.url_name == 'catalog' %}aria-current="page"{% endif %}>The collection</a>
+      <a href="{% url 'shop:page' 'about' %}">Our perspective</a>
+      <a href="{% url 'shop:page' 'contact' %}">Concierge</a>
+    </nav>
+    <div class="header-actions">
+      <a class="search-link" href="{% url 'shop:catalog' %}?search=1" aria-label="Search watches"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.4"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.4"/></svg></a>
+      <a class="bag-link" href="{% url 'shop:cart' %}">Bag <span class="bag-count">{{ cart_count|default:0 }}</span></a>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-controls="mobile-nav" aria-expanded="false"><span></span><span></span></button>
+    </div>
+  </header>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+    <a href="{% url 'shop:catalog' %}">The collection</a>
+    <a href="{% url 'shop:page' 'about' %}">Our perspective</a>
+    <a href="{% url 'shop:page' 'contact' %}">Concierge</a>
+  </nav>
+  {% if messages %}<div class="messages" role="status" aria-live="polite">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}<button type="button" class="message-dismiss" aria-label="Dismiss message">×</button></div>{% endfor %}</div>{% endif %}
+  <main id="main">{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <div class="footer-top"><div><a class="wordmark footer-brand" href="{% url 'shop:home' %}">{{ store_name }}</a><p>Time, reduced<br>to its essentials.</p></div><div class="footer-links"><div><span class="eyebrow">DISCOVER</span><a href="{% url 'shop:catalog' %}">All watches</a><a href="{% url 'shop:page' 'about' %}">Our perspective</a><a href="{% url 'shop:page' 'contact' %}">Contact</a></div><div><span class="eyebrow">GOOD TO KNOW</span><a href="{% url 'shop:page' 'shipping' %}">Shipping & delivery</a><a href="{% url 'shop:page' 'returns' %}">Returns & care</a><a href="{% url 'shop:page' 'privacy' %}">Privacy</a><a href="{% url 'shop:page' 'terms' %}">Terms</a></div></div></div>
+    <div class="footer-bottom"><span>© {% now 'Y' %} {{ store_name }}.</span><span>Independent objects for measured living.</span><a href="{% url 'admin:index' %}">Store administration</a></div>
+    {% if demo_mode %}<p class="demo-note">Preview store. Watches, specifications, and imagery in the sample collection are illustrative. Sample watches cannot be purchased.</p>{% endif %}
+  </footer>
+</body>
+</html>

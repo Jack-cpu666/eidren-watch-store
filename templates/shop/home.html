@@ -1,0 +1,26 @@
+{% extends 'base.html' %}{% load static %}
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-image"><img src="{% static 'images/hero-watch.png' %}" alt="A steel watch with a warm dial, photographed against sculptural dark stone" fetchpriority="high" width="1536" height="1024"><div class="hero-image-top"><span>EIDREN / OBJECT 01</span><span class="hero-edition">EDITION 001 — 2026</span></div></div>
+  <div class="hero-copy"><span class="eyebrow"><span class="small-line"></span> INDEPENDENT WATCHMAKING</span><h1 id="hero-title">Time,<br><em>made tangible.</em></h1><p>Precise proportions. Honest materials.<br>Mechanical character without the noise.</p><a class="button button-dark" href="{% url 'shop:catalog' %}">Enter the collection</a><div class="hero-footnote"><span class="hero-index">01 / 03</span><span>ATELIER 01<br>AUTOMATIC · 39 MM</span></div></div>
+  <div class="hero-rail" aria-hidden="true"><span>SCROLL TO DISCOVER</span><i></i></div>
+</section>
+<div class="values-strip"><span>01 / PROPORTION</span><span>02 / MATERIAL</span><a href="{% url 'shop:page' 'contact' %}">03 / PERSONAL CONCIERGE</a></div>
+<section class="marquee-band" aria-label="Eidren principles"><div><span>PRECISION</span><i></i><span>RESTRAINT</span><i></i><span>PRESENCE</span><i></i><span>PRECISION</span><i></i><span>RESTRAINT</span><i></i><span>PRESENCE</span><i></i></div></section>
+<section class="tour" aria-labelledby="tour-title">
+  <div class="tour-stage">
+    <div class="tour-intro"><span class="eyebrow">THE EIDREN GALLERY / 01—03</span><h2 id="tour-title">Move through<br>the collection.</h2><p>Scroll to enter each room.</p></div>
+    <div class="tour-camera">
+      <div class="tour-vault" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="tour-viewport">
+        {% for product in featured_products %}<article class="tour-card" data-tour-card data-tour-name="{{ product.name }}"><a href="{% url 'shop:product_detail' product.slug %}" class="tour-card-image"><img src="{{ product.image_url }}" alt="{{ product.image_alt|default:product.name }}" width="900" height="1100"><span>ENTER OBJECT 0{{ forloop.counter }}</span></a><div class="tour-card-copy"><div><span class="eyebrow">OBJECT 0{{ forloop.counter }} / {{ product.get_collection_display }}</span><h3>{{ product.name }}</h3></div><div><p>{{ product.short_description }}</p><strong>${{ product.price|floatformat:'2g' }}</strong></div></div></article>{% endfor %}
+      </div>
+    </div>
+    <div class="tour-status"><span class="tour-number">01</span><div><i></i></div><span class="tour-total">0{{ featured_products|length }}</span><strong class="tour-name">{% with featured_products|first as first_product %}{{ first_product.name }}{% endwith %}</strong></div>
+    <a class="tour-all" href="{% url 'shop:catalog' %}">View all objects</a>
+  </div>
+</section>
+<section class="manifesto" data-reveal><span class="manifesto-index">E / 01</span><p>We remove until<br>only the <em>essential</em><br>remains.</p><div class="manifesto-meta"><span>DESIGNED WITH INTENTION</span><span>BUILT TO BE WORN</span></div></section>
+<section class="perspective-section"><div class="perspective-image"><img src="{% static 'images/watch-ivory.png' %}" alt="A dress watch with a warm ivory dial and a textured leather strap" loading="lazy" width="1024" height="1536"><span class="image-note">OBJECT 01 / IVORY</span></div><div class="perspective-copy"><span class="eyebrow">DESIGN PHILOSOPHY</span><h2>Quiet form.<br>Clear <em>purpose.</em></h2><p>Every surface has a purpose. Every proportion earns its place. EIDREN pairs classic mechanical character with a precise, contemporary point of view.</p><dl class="design-notes"><div><dt>01</dt><dd>Proportion before ornament</dd></div><div><dt>02</dt><dd>Materials that age honestly</dd></div><div><dt>03</dt><dd>Details discovered over time</dd></div></dl><a class="text-link" href="{% url 'shop:page' 'about' %}">Our point of view</a></div></section>
+<section class="closing-note"><span class="eyebrow">YOUR TIME / YOUR OBJECT</span><h2>Choose what<br><em>stays with you.</em></h2><a class="button button-dark" href="{% url 'shop:catalog' %}">Find your watch</a></section>
+{% endblock %}

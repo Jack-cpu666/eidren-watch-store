@@ -1,0 +1,3 @@
+{% extends 'base.html' %}
+{% block title %}{{ page.title }} — {{ store_name }}{% endblock %}
+{% block content %}<article class="section editorial-page"><div class="editorial-heading"><span class="eyebrow">THE EIDREN PERSPECTIVE</span><h1>{{ page.title }}</h1></div><div class="editorial-body">{{ page.body|linebreaks }}{% if page.slug == 'contact' and store_email %}<a class="button button-dark" href="mailto:{{ store_email }}">Email {{ store_name }}</a>{% endif %}</div><a class="text-link editorial-back" href="{% url 'shop:catalog' %}">Back to the collection</a></article>{% endblock %}

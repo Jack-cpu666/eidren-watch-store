@@ -1,0 +1,12 @@
+# Direct dependencies. requirements.txt pins all resolved packages.
+Django>=5.2,<5.3
+dj-database-url>=3,<4
+whitenoise[brotli]>=6,<7
+gunicorn>=23,<24
+psycopg[binary]>=3.2,<4
+python-dotenv>=1,<2
+argon2-cffi>=25,<26
+django-axes>=8,<9
+django-otp>=1.6,<2
+stripe>=14,<15
+Pillow>=12,<13
