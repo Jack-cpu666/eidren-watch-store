@@ -75,7 +75,7 @@ def _checkout_payload(order, items):
     return payload
 
 
-def reserve_order(browser_key, quantities):
+def reserve_order(browser_key, quantities, customer=None):
     if not quantities or len(quantities) > MAX_CART_PRODUCTS:
         raise CheckoutProblem("Your bag is empty. Add a watch before checking out.")
     if any(not str(key).isdigit() or type(qty) is not int or not 1 <= qty <= MAX_QUANTITY for key, qty in quantities.items()):
@@ -88,6 +88,9 @@ def reserve_order(browser_key, quantities):
             if current.status == Order.Status.PENDING:
                 if current.cart_fingerprint != fingerprint(quantities):
                     raise CheckoutProblem("Your previous checkout still holds its watches. Cancel that checkout below before paying for your updated bag.")
+                if customer and current.customer_id is None:
+                    current.customer = customer
+                    current.save(update_fields=["customer", "updated_at"])
                 return current
         products = list(Product.objects.select_for_update().filter(pk__in=quantities).order_by("pk"))
         if len(products) != len(quantities):
@@ -97,13 +100,13 @@ def reserve_order(browser_key, quantities):
             quantity = quantities[str(product.pk)]
             if not product.is_active or product.stock < quantity:
                 raise CheckoutProblem(f"{product.name} no longer has that quantity available. Please update your bag.")
-            if product.is_demo and (not (settings.DEBUG or settings.DEMO_MODE) or not settings.STRIPE_SECRET_KEY.startswith("sk_test_")):
-                raise CheckoutProblem("This is a preview watch. Replace demo listings with your real inventory before accepting live payments.")
+            if product.is_demo:
+                raise CheckoutProblem("Preview watches can be saved in your bag, but cannot be checked out. Replace them with verified inventory before accepting payments.")
             subtotal += product.price_cents * quantity
         # Stripe accepts expirations at least 30 minutes away. A minute of margin
         # allows for the DB commit and ordinary network latency.
         order = Order.objects.create(
-            browser_key=browser_key, cart_fingerprint=fingerprint(quantities),
+            browser_key=browser_key, customer=customer, cart_fingerprint=fingerprint(quantities),
             subtotal_cents=subtotal, shipping_cents=settings.SHIPPING_RATE_CENTS,
             total_cents=subtotal + settings.SHIPPING_RATE_CENTS,
             reserved_until=timezone.now() + timedelta(minutes=31),
@@ -138,10 +141,10 @@ def attach_session(order, session):
     order.stripe_checkout_url = session.get("url") or ""
 
 
-def start_checkout(browser_key, quantities):
+def start_checkout(browser_key, quantities, customer=None):
     if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_WEBHOOK_SECRET:
         raise CheckoutProblem("Online checkout is being configured. Please contact the store for assistance.")
-    order = reserve_order(browser_key, quantities)
+    order = reserve_order(browser_key, quantities, customer=customer)
     try:
         if order.stripe_session_id:
             session = stripe.checkout.Session.retrieve(order.stripe_session_id, api_key=settings.STRIPE_SECRET_KEY)

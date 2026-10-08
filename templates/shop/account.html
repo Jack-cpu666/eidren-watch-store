@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Your account — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="account-shell section" data-reveal>
+  <div class="account-panel account-wide"><span class="eyebrow">YOUR {{ store_name }} ACCOUNT</span><div class="account-heading"><div><h1>Hello,<br><em>{{ user.username }}.</em></h1><p>{{ user.email }}</p></div><form method="post" action="{% url 'shop:account_logout' %}">{% csrf_token %}<button class="underlined-button" type="submit">Sign out</button></form></div><a class="button button-dark" href="{% url 'shop:cart' %}">View saved bag <span>→</span></a><div class="account-orders"><span class="eyebrow">ORDERS</span>{% if orders %}<div class="order-list">{% for order in orders %}<article><div><strong>{{ order.reference }}</strong><span>{{ order.created_at|date:'M j, Y' }}</span></div><div><span>{{ order.get_status_display }}</span><strong>${{ order.total|floatformat:'2g' }}</strong></div></article>{% endfor %}</div>{% else %}<p>No orders linked to this account yet. Your bag is saved and ready when you are.</p>{% endif %}</div></div>
+</section>
+{% endblock %}

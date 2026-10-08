@@ -39,3 +39,5 @@ services:
         value: US
       - key: SHIPPING_RATE_CENTS
         value: "0"
+      - key: CART_COOKIE_AGE
+        value: "2592000"

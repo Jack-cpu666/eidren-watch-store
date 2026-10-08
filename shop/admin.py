@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django import forms
 
-from .models import Order, OrderItem, Page, Product, WebhookEvent
+from .models import Order, OrderItem, Page, Product, SavedCart, WebhookEvent
 
 
 @admin.register(Product)
@@ -52,7 +52,7 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ("id", "customer_email", "customer_name", "stripe_session_id", "stripe_payment_intent", "tracking_number")
     readonly_fields = (
         "id", "status", "created_at", "updated_at", "paid_at", "currency", "subtotal", "shipping_cents", "tax_cents", "total",
-        "customer_name", "customer_email", "shipping_address", "stripe_session_id", "stripe_payment_intent", "reserved_until",
+        "customer", "customer_name", "customer_email", "shipping_address", "stripe_session_id", "stripe_payment_intent", "reserved_until", "terms_accepted_at",
     )
     fields = readonly_fields + ("fulfillment", "tracking_number", "tracking_url", "staff_notes")
     inlines = [OrderItemInline]
@@ -73,6 +73,20 @@ class PageAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     search_fields = ("title", "body")
     readonly_fields = ("updated_at",)
+
+
+@admin.register(SavedCart)
+class SavedCartAdmin(admin.ModelAdmin):
+    list_display = ("user", "updated_at")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("user", "items", "updated_at")
+    actions = None
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(WebhookEvent)

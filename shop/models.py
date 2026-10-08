@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
@@ -82,6 +83,14 @@ class Page(models.Model):
         return self.title
 
 
+class SavedCart(models.Model):
+    """A customer's bag, retained across browsers after they choose to sign in."""
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="saved_cart", on_delete=models.CASCADE)
+    items = models.JSONField(default=dict)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class Order(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Awaiting payment"
@@ -97,6 +106,7 @@ class Order(models.Model):
         DELIVERED = "delivered", "Delivered"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name="store_orders", on_delete=models.SET_NULL, editable=False)
     browser_key = models.UUIDField(db_index=True, editable=False)
     cart_fingerprint = models.CharField(max_length=64, editable=False)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
@@ -120,6 +130,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(null=True, blank=True, editable=False)
+    terms_accepted_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         ordering = ["-created_at"]

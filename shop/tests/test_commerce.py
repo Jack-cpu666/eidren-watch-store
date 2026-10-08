@@ -8,11 +8,12 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import stripe
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from shop.models import Order, Product, WebhookEvent
+from shop.models import Order, Product, SavedCart, WebhookEvent
 from shop.services import CheckoutProblem, apply_session, cancel_checkout, process_event, rate_limit, reconcile_order, reserve_order, start_checkout
 
 
@@ -111,7 +112,7 @@ class CommerceTests(TestCase):
             self.assertEqual(kwargs["line_items"][0]["price_data"]["unit_amount"], 39995)
             return self.stripe_session(order, status="open", payment_status="unpaid")
         with patch("shop.services.stripe.checkout.Session.create", side_effect=fake_create) as create:
-            response = self.client.post(reverse("shop:checkout"), {"price": "0.01", "total": "0.01"})
+            response = self.client.post(reverse("shop:checkout"), {"price": "0.01", "total": "0.01", "accept_terms": "yes"})
         self.assertEqual(response.status_code, 303)
         self.assertEqual(Order.objects.get().subtotal_cents, 39995)
         self.assertEqual(create.call_count, 1)
@@ -232,6 +233,26 @@ class CommerceTests(TestCase):
             response = self.client.post(url, {"quantity": quantity, "next": "https://evil.example"})
             self.assertRedirects(response, reverse("shop:cart"), fetch_redirect_response=False)
         self.assertEqual(self.client.session.get("cart", {}), {})
+
+    def test_preview_watch_can_be_saved_but_never_checked_out(self):
+        self.watch.is_demo = True
+        self.watch.save(update_fields=["is_demo"])
+        self.client.post(reverse("shop:cart_add", args=[self.watch.pk]), {"quantity": 1})
+        response = self.client.post(reverse("shop:checkout"), {"accept_terms": "yes"})
+        self.assertRedirects(response, reverse("shop:cart"), fetch_redirect_response=False)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_customer_account_merges_device_bag_and_saves_it(self):
+        session = self.client.session
+        session["cart"] = self.bag
+        session.save()
+        response = self.client.post(reverse("shop:account_register"), {
+            "username": "buyer-account", "email": "buyer@example.com",
+            "password1": "A secure buyer password 550!", "password2": "A secure buyer password 550!", "accept_terms": "on",
+        })
+        self.assertRedirects(response, reverse("shop:account"), fetch_redirect_response=False)
+        user = get_user_model().objects.get(username="buyer-account")
+        self.assertEqual(SavedCart.objects.get(user=user).items, self.bag)
 
     def test_limiter_is_persistent(self):
         self.assertTrue(rate_limit("checkout-test", limit=2))
