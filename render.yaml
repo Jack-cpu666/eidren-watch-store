@@ -14,7 +14,9 @@ services:
     plan: starter
     region: oregon
     buildCommand: bash build.sh
-    startCommand: python manage.py migrate --noinput && python manage.py seed_demo && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
+    # Demo content is intentionally manual-only. Production must never recreate
+    # sample watches or draft policies during a restart.
+    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
