@@ -34,7 +34,7 @@ For manual creation, make a managed PostgreSQL database and Python web service i
 | `CSRF_TRUSTED_ORIGINS` | Exact comma-separated HTTPS origins, e.g. `https://your-store.onrender.com,https://www.yourdomain.com` |
 | `STORE_NAME` | Your public business/store name |
 | `STORE_EMAIL` | A monitored customer-service email address |
-| `STRIPE_SECRET_KEY` | Start with your Stripe test secret (`sk_test_…`); use `sk_live_…` only after launch checks |
+| `STRIPE_SECRET_KEY` | Start with a Stripe test secret (`sk_test_…` or restricted `rk_test_…`); use a least-privilege live restricted key (`rk_live_…`) only after launch checks |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret (`whsec_…`) for this exact endpoint and Stripe mode |
 | `STRIPE_AUTOMATIC_TAX` | `true` only after configuring Stripe Tax and registrations; default `false` |
 | `SHIPPING_COUNTRIES` | Comma-separated Stripe-supported two-letter countries, e.g. `US,CA` |
@@ -66,7 +66,7 @@ Create real product listings and approved Pages in admin. The deployment never a
 
 ## 5. Connect Stripe
 
-1. In your Stripe test environment, copy your secret API key to Render as `STRIPE_SECRET_KEY`.
+1. In your Stripe test environment, create a restricted key with write access to Checkout Sessions and copy it to Render as `STRIPE_SECRET_KEY`. Keep every unrelated resource set to None. Use a separate restricted key in live mode.
 2. In Stripe **Workbench → Webhooks**, create a **snapshot** event destination for your own account at `https://YOUR_DOMAIN/webhooks/stripe/`.
 3. Select `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, and `charge.refunded`. Use a current stable API version and run the full test flow below after any version change.
 4. Copy that destination's signing secret into `STRIPE_WEBHOOK_SECRET`, then redeploy/restart so the new value is loaded.

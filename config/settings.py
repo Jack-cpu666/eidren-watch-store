@@ -193,7 +193,7 @@ except ValueError as exc:
     raise ImproperlyConfigured("SHIPPING_RATE_CENTS must be a non-negative integer.") from exc
 if not 0 <= SHIPPING_RATE_CENTS <= 100000:
     raise ImproperlyConfigured("SHIPPING_RATE_CENTS must be between 0 and 100000.")
-if DEMO_MODE and STRIPE_SECRET_KEY.startswith("sk_live_"):
+if DEMO_MODE and STRIPE_SECRET_KEY.startswith(("sk_live_", "rk_live_")):
     raise ImproperlyConfigured("Live Stripe keys cannot be used while DEMO_MODE is enabled.")
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend"
