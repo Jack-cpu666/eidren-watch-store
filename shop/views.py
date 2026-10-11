@@ -20,6 +20,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .cart import MAX_CART_PRODUCTS, MAX_QUANTITY, browser_key, cart_quantities, fingerprint, get_cart, persist_cart, save_cart
 from .models import CheckoutState, Order, Page, Product
+from .readiness import checkout_is_ready
 from .services import CheckoutProblem, PaymentMismatch, cancel_checkout, process_event, rate_limit, start_checkout
 
 logger = logging.getLogger(__name__)
@@ -89,7 +90,11 @@ def cart(request):
         state = CheckoutState.objects.select_related("current_order").filter(pk=key).first()
         if state and state.current_order and state.current_order.status == Order.Status.PENDING:
             active_order = state.current_order
-    return render(request, "shop/cart.html", {"cart": get_cart(request), "active_order": active_order})
+    return render(request, "shop/cart.html", {
+        "cart": get_cart(request),
+        "active_order": active_order,
+        "checkout_ready": checkout_is_ready(),
+    })
 
 
 def _quantity(request):

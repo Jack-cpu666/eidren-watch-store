@@ -64,6 +64,8 @@ After five failed password attempts, sign-in is locked for an hour. A trusted ad
 
 Create real product listings and approved Pages in admin. The deployment never automatically runs `seed_demo`. Sample listings are not inventory. Use an external HTTPS image host or versioned bundled assets; Render's ephemeral filesystem is not image storage.
 
+Checkout stays closed while `STORE_EMAIL` uses the example address, while any required contact/shipping/returns/privacy/terms page is missing or unpublished, or while those pages still contain the seeded draft language. This launch gate prevents a real listing from taking payment before the public business terms are complete.
+
 ## 5. Connect Stripe
 
 1. In your Stripe test environment, create a restricted key with write access to Checkout Sessions and copy it to Render as `STRIPE_SECRET_KEY`. Keep every unrelated resource set to None. Use a separate restricted key in live mode.

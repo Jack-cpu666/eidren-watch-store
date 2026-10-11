@@ -18,6 +18,7 @@ from django.utils import timezone
 
 from .cart import MAX_CART_PRODUCTS, MAX_QUANTITY, fingerprint
 from .models import CheckoutState, Order, OrderItem, Product, RateLimitBucket, WebhookEvent
+from .readiness import checkout_is_ready
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +145,8 @@ def attach_session(order, session):
 def start_checkout(browser_key, quantities, customer=None):
     if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_WEBHOOK_SECRET:
         raise CheckoutProblem("Online checkout is being configured. Please contact the store for assistance.")
+    if not checkout_is_ready():
+        raise CheckoutProblem("Checkout is not open yet. The store owner is completing the customer-service and policy details.")
     order = reserve_order(browser_key, quantities, customer=customer)
     try:
         if order.stripe_session_id:

@@ -42,6 +42,8 @@ Open **http://127.0.0.1:8000/** for the store and **http://127.0.0.1:8000/admin/
 5. In **Pages**, publish your business's approved policies. Text is escaped and rendered as plain paragraphs; HTML is not accepted as executable page content.
 6. In **Orders**, only ship orders marked **Paid**. Use fulfillment, tracking, and staff notes to manage dispatch. Payment amounts and payment state are controlled by the payment workflow, not manually editable fields.
 
+Checkout remains closed until the contact, shipping, returns, privacy, and terms pages are published without the seeded draft language and `STORE_EMAIL` is a monitored non-example address.
+
 Stock means units currently available for purchase. Starting Checkout reserves units; confirmed canceled or expired sessions release them. Do not count reserved units a second time when editing stock. Archive sold/discontinued watches with **Active** rather than deleting products referenced by orders.
 
 Refund payments in the Stripe Dashboard. Review the matching order after a refund webhook arrives; physical returns and restocking require your own inspection and action. The storefront does not buy postage, automatically fulfill shipments, or implement a return merchandise workflow.

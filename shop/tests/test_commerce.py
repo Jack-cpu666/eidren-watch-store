@@ -13,7 +13,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from shop.models import Order, Product, SavedCart, WebhookEvent
+from shop.models import Order, Page, Product, SavedCart, WebhookEvent
 from shop.services import CheckoutProblem, apply_session, cancel_checkout, process_event, rate_limit, reconcile_order, reserve_order, start_checkout
 
 
@@ -21,12 +21,15 @@ SETTINGS = dict(
     STRIPE_SECRET_KEY="sk_test_example", STRIPE_WEBHOOK_SECRET="whsec_test_secret", SITE_URL="https://example.com",
     SHIPPING_RATE_CENTS=500, SHIPPING_COUNTRIES=["US"], STRIPE_AUTOMATIC_TAX=False,
     DEMO_MODE=False, SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["testserver"],
+    STORE_EMAIL="support@eidren.test",
 )
 
 
 @override_settings(**SETTINGS)
 class CommerceTests(TestCase):
     def setUp(self):
+        for slug in ("contact", "shipping", "returns", "privacy", "terms"):
+            Page.objects.create(slug=slug, title=slug.title(), body=f"Approved {slug} policy.", is_published=True)
         self.watch = Product.objects.create(name="Test Watch", slug="test-watch", collection="dress", price=Decimal("399.95"), stock=3, short_description="A real watch", description="Test description")
         self.key = uuid.uuid4()
         self.bag = {str(self.watch.pk): 1}
@@ -102,6 +105,12 @@ class CommerceTests(TestCase):
         with override_settings(DEBUG=False, DEMO_MODE=False):
             with self.assertRaises(CheckoutProblem):
                 self.reserve()
+
+    def test_checkout_requires_real_contact_and_final_policies(self):
+        with override_settings(STORE_EMAIL="concierge@example.com"):
+            with self.assertRaisesRegex(CheckoutProblem, "not open yet"):
+                start_checkout(self.key, self.bag)
+        self.assertFalse(Order.objects.exists())
 
     def test_checkout_post_ignores_client_supplied_price(self):
         session = self.client.session
