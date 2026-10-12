@@ -32,23 +32,37 @@ def _merge_quantities(first, second):
     return dict(list(merged.items())[:MAX_CART_PRODUCTS])
 
 
+def _available_quantities(quantities):
+    """Remove retired products and reduce stale bag quantities to live stock."""
+    products = Product.objects.filter(pk__in=quantities, is_active=True).only("pk", "stock")
+    available = {}
+    for product in products:
+        quantity = min(quantities[str(product.pk)], product.stock, MAX_QUANTITY)
+        if quantity:
+            available[str(product.pk)] = quantity
+    return available
+
+
 def cart_quantities(request):
     session_cart = normalize_quantities(request.session.get("cart", {}))
     if not request.user.is_authenticated:
-        return session_cart
+        available = _available_quantities(session_cart)
+        if available != session_cart:
+            request.session["cart"] = available
+            request.session.modified = True
+        return available
 
     saved_cart, _ = SavedCart.objects.get_or_create(user=request.user)
     saved_items = normalize_quantities(saved_cart.items)
     if session_cart:
         saved_items = _merge_quantities(saved_items, session_cart)
-        saved_cart.items = saved_items
-        saved_cart.save(update_fields=["items", "updated_at"])
         request.session["cart"] = {}
         request.session.modified = True
-    elif saved_items != saved_cart.items:
-        saved_cart.items = saved_items
+    available = _available_quantities(saved_items)
+    if available != saved_cart.items:
+        saved_cart.items = available
         saved_cart.save(update_fields=["items", "updated_at"])
-    return saved_items
+    return available
 
 
 def save_cart(request, quantities):

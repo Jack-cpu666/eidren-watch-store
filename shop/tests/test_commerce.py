@@ -153,6 +153,23 @@ class CommerceTests(TestCase):
         self.assertEqual(Order.objects.get().subtotal_cents, 39995)
         self.assertEqual(create.call_count, 1)
 
+    def test_checkout_discards_retired_items_left_in_a_saved_bag(self):
+        retired = Product.objects.create(
+            name="Retired Watch", slug="retired-watch", collection="dress", price=100, stock=2,
+            short_description="Retired", description="Retired", is_active=False,
+        )
+        session = self.client.session
+        session["cart"] = {str(self.watch.pk): 1, str(retired.pk): 2}
+        session.save()
+
+        with patch("shop.services.stripe.checkout.Session.create", side_effect=lambda **kwargs: self.stripe_session(
+            Order.objects.get(pk=kwargs["metadata"]["order_id"]), status="open", payment_status="unpaid"
+        )):
+            response = self.client.post(reverse("shop:checkout"), {"accept_terms": "yes"})
+
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(self.client.session["cart"], {str(self.watch.pk): 1})
+
     def test_ambiguous_create_failure_preserves_inventory_and_idempotency(self):
         with patch("shop.services.stripe.checkout.Session.create", side_effect=stripe.APIConnectionError("timeout")) as create:
             for _ in range(2):
