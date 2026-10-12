@@ -129,8 +129,9 @@ class CommerceTests(TestCase):
         self.assertFalse(Order.objects.exists())
 
     def test_checkout_requires_verified_in_stock_inventory(self):
-        self.watch.is_demo = True
-        self.watch.save(update_fields=["is_demo"])
+        # Data migrations create the live collection too, so remove every
+        # verified item rather than only the watch made by this test.
+        Product.objects.update(is_demo=True)
         with self.assertRaisesRegex(CheckoutProblem, "not open yet"):
             start_checkout(self.key, self.bag)
         self.assertFalse(Order.objects.exists())
