@@ -128,6 +128,13 @@ class CommerceTests(TestCase):
                 start_checkout(self.key, self.bag)
         self.assertFalse(Order.objects.exists())
 
+    def test_checkout_requires_verified_in_stock_inventory(self):
+        self.watch.is_demo = True
+        self.watch.save(update_fields=["is_demo"])
+        with self.assertRaisesRegex(CheckoutProblem, "not open yet"):
+            start_checkout(self.key, self.bag)
+        self.assertFalse(Order.objects.exists())
+
     def test_checkout_post_ignores_client_supplied_price(self):
         session = self.client.session
         session["cart"] = self.bag

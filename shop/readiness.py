@@ -2,7 +2,7 @@
 
 from django.conf import settings
 
-from .models import Page
+from .models import Page, Product
 
 
 REQUIRED_POLICY_SLUGS = ("contact", "shipping", "returns", "privacy", "terms")
@@ -23,6 +23,9 @@ def checkout_readiness_issues():
     email = settings.STORE_EMAIL.strip().lower()
     if not email or email.endswith("@example.com"):
         issues.append("Set a monitored customer-service email address.")
+
+    if not Product.objects.filter(is_active=True, is_demo=False, stock__gt=0).exists():
+        issues.append("Publish at least one verified, in-stock product listing.")
 
     pages = {
         page.slug: page
