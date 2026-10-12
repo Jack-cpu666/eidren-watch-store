@@ -67,12 +67,15 @@ def cart_quantities(request):
 
 def save_cart(request, quantities):
     cleaned = normalize_quantities(quantities)
-    request.session["cart"] = cleaned
-    request.session.modified = True
     if request.user.is_authenticated:
         SavedCart.objects.update_or_create(user=request.user, defaults={"items": cleaned})
+        # The account copy is authoritative after sign-in. Keeping the same
+        # items in the device session makes cart_quantities merge them again.
+        request.session["cart"] = {}
     else:
+        request.session["cart"] = cleaned
         request.session.set_expiry(settings.CART_COOKIE_AGE)
+    request.session.modified = True
     return cleaned
 
 

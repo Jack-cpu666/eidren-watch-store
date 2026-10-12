@@ -307,6 +307,17 @@ class CommerceTests(TestCase):
         user = get_user_model().objects.get(username="buyer-account")
         self.assertEqual(SavedCart.objects.get(user=user).items, self.bag)
 
+    def test_signed_in_cart_is_not_merged_with_itself_on_each_request(self):
+        user = get_user_model().objects.create_user("returning-buyer", "returning@example.com", "A secure buyer password 550!")
+        self.client.force_login(user)
+        self.client.post(reverse("shop:cart_add", args=[self.watch.pk]), {"quantity": 1})
+
+        response = self.client.get(reverse("shop:cart"))
+
+        self.assertEqual(response.context["cart"]["total_quantity"], 1)
+        self.assertEqual(SavedCart.objects.get(user=user).items, self.bag)
+        self.assertEqual(self.client.session.get("cart"), {})
+
     def test_limiter_is_persistent(self):
         self.assertTrue(rate_limit("checkout-test", limit=2))
         self.assertTrue(rate_limit("checkout-test", limit=2))
