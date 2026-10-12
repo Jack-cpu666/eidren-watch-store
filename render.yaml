@@ -24,7 +24,7 @@ services:
       - key: DEBUG
         value: "false"
       - key: DEMO_MODE
-        value: "true"
+        value: "false"
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL

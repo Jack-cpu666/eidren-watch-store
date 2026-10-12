@@ -18,6 +18,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+from config.security import client_ip
+
 from .cart import MAX_CART_PRODUCTS, MAX_QUANTITY, browser_key, cart_quantities, fingerprint, get_cart, persist_cart, save_cart
 from .models import CheckoutState, Order, Page, Product
 from .readiness import checkout_is_ready
@@ -159,7 +161,7 @@ def cart_remove(request, product_id):
 @require_POST
 def checkout(request):
     identity = str(browser_key(request))
-    ip = request.META.get("REMOTE_ADDR", "unknown")
+    ip = client_ip(request) or "unknown"
     if not rate_limit("checkout-ip:" + ip, limit=30) or not rate_limit("checkout-browser:" + identity):
         return HttpResponse("Too many checkout attempts. Please wait 15 minutes and try again.", status=429, headers={"Retry-After": "900"})
     cart = get_cart(request)
@@ -236,7 +238,7 @@ def account_login(request):
 def account_register(request):
     if request.user.is_authenticated:
         return redirect("shop:account")
-    if request.method == "POST" and not rate_limit("account-register:" + request.META.get("REMOTE_ADDR", "unknown"), limit=10, seconds=3600):
+    if request.method == "POST" and not rate_limit("account-register:" + (client_ip(request) or "unknown"), limit=10, seconds=3600):
         return HttpResponse("Too many account creation attempts. Please try again later.", status=429, headers={"Retry-After": "3600"})
     form = CustomerSignUpForm(request.POST or None)
     if request.method == "POST" and form.is_valid():

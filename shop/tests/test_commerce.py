@@ -67,6 +67,22 @@ class CommerceTests(TestCase):
         self.assertEqual(self.watch.stock, 2)
         self.assertEqual(Order.objects.count(), 1)
 
+    @override_settings(TRUSTED_PROXY_CIDRS=["10.0.0.0/24"])
+    @patch("shop.views.start_checkout", side_effect=CheckoutProblem("stop after rate limit"))
+    @patch("shop.views.rate_limit", return_value=True)
+    def test_checkout_rate_limit_uses_verified_client_ip(self, limiter, _start):
+        session = self.client.session
+        session["cart"] = self.bag
+        session.save()
+        response = self.client.post(
+            reverse("shop:checkout"),
+            {"accept_terms": "yes"},
+            REMOTE_ADDR="10.0.0.2",
+            HTTP_X_FORWARDED_FOR="198.51.100.24, 10.0.0.3",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(limiter.call_args_list[0].args[0], "checkout-ip:198.51.100.24")
+
     def test_sold_out_inventory_cannot_be_reserved_again(self):
         Product.objects.filter(pk=self.watch.pk).update(stock=1)
         self.reserve()
