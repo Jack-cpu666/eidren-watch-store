@@ -29,7 +29,10 @@ SETTINGS = dict(
 class CommerceTests(TestCase):
     def setUp(self):
         for slug in ("contact", "shipping", "returns", "privacy", "terms"):
-            Page.objects.create(slug=slug, title=slug.title(), body=f"Approved {slug} policy.", is_published=True)
+            Page.objects.update_or_create(
+                slug=slug,
+                defaults={"title": slug.title(), "body": f"Approved {slug} policy.", "is_published": True},
+            )
         self.watch = Product.objects.create(name="Test Watch", slug="test-watch", collection="dress", price=Decimal("399.95"), stock=3, short_description="A real watch", description="Test description")
         self.key = uuid.uuid4()
         self.bag = {str(self.watch.pk): 1}
